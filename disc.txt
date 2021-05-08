@@ -1,0 +1,10 @@
+Insurnace company -> client1
+1) driver's license
+2) Double
+3) gender
+
+Insurnace company fills a form with the apiKey (post request) + info they need
+Server (checks if uuid exists, and if exist -> it serches for the info that was asked by Insurnace company )
+if not, it asks the client 1 to specify those info 
+client 1 checks info that's going to be sent to insurnace company, reviews and click ok
+json sent ton insurnace company 1
