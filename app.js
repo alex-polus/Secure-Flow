@@ -13,7 +13,7 @@ app.use(express.static("public"));
 
 //Mongo DB
 const MongoClient = require('mongodb').MongoClient;
-const uri = "mongodb+srv://mongo:Zjsxyks9!@cluster0.kxpu2.mongodb.net/testdb?retryWrites=true&w=majority";
+const uri = "mongodb+srv://mongo:<password>@cluster0.kxpu2.mongodb.net/testdb?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Routes
