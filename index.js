@@ -1,49 +1,54 @@
-var express = require('express');
+var express = require("express");
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
+
+// routes
+const authRoute = require("./routes/authentication/authroute");
+const apiRoute = require("./routes/api/apiroute");
+const { tokenMiddleware } = require("./middleware");
 
 var app = express();
-var bodyParser = require('body-parser');
-const { Double } = require('bson');
-const { exists } = require('fs');
+var bodyParser = require("body-parser");
+const { Double } = require("bson");
+const { exists } = require("fs");
 
 const port = process.env.PORT || 3000;
 
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended:false }));
-app.use(bodyParser.json());
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(express.static("public"));
+app.use(tokenMiddleware);
+app.use("/auth", authRoute);
+app.use("/api", apiRoute);
 
-var mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
-var mongoAtlasUri = 'mongodb+srv://mongo:<password>@cluster0.kxpu2.mongodb.net/testdb?retryWrites=true&w=majority';
+// var mongoAtlasUri = `mongodb+srv://${process.env.DB_PASS}@cluster0.98ji6.mongodb.net/testdb?retryWrites=true&w=majority`;
+var mongoAtlasUri = "mongodb://localhost:27017/test";
+
 try {
-    // Connect to the MongoDB cluster
-     mongoose.connect(
-      mongoAtlasUri,
-      { useNewUrlParser: true, useUnifiedTopology: true },
-      () => console.log(" Mongoose is connected")
-    );
+  // Connect to the MongoDB cluster
+  mongoose.connect(
+    mongoAtlasUri,
+    { useNewUrlParser: true, useUnifiedTopology: true },
+    () => console.log(" Mongoose is connected")
+  );
+} catch (e) {
+  console.log("could not connect");
+}
 
-  } catch (e) {
-    console.log("could not connect");
-  }
+app.get("/", (req, res) => {
+  res.render("index");
+});
 
+app.post("/handle", (req, res) => {
+  var apiKey = req.body.apiKey;
+  var item = req.body.item;
 
-
-app.get('/', (req, res) => {
-    res.render('index');
-})
-
-app.post('/handle', (req, res) => {
-    var apiKey = req.body.apiKey;
-    var item = req.body.item;
-
-    
-       
-    
-
-    console.log(req.body);
-    
-})
+  console.log(req.body);
+  res.send();
+});
 /*
 app.get('/', (req, res) => {
     //res.send("ToHack2021");
@@ -52,11 +57,9 @@ app.get('/', (req, res) => {
 })
 */
 
-
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-})
-
+  console.log(`Server running on port ${port}`);
+});
 
 // =================================================== //
 
@@ -104,5 +107,3 @@ collection.findOne({uuid : uuid}, (err,doc) => {
 });
 
 */
-
-
