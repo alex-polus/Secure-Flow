@@ -19,6 +19,10 @@ var containerSchema = mongoose.Schema({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Accessor" }],
     required: true,
   },
+  askers: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Accessor" }],
+    required: true,
+  },
 });
 
 exports.containerSchema = containerSchema;

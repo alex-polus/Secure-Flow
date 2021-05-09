@@ -5,6 +5,8 @@ const Container = require("../../models/containermodel");
 const { createKey, getValue } = require("./utils");
 const { route } = require("../authentication/authroute");
 const Accessor = require("../../models/accessormodel");
+const { sendNotif } = require("../../courier/courier");
+const User = require("../../models/usermodel");
 
 router.post("/create", async (req, res) => {
   let body = req.body;
@@ -52,6 +54,7 @@ router.post("/create", async (req, res) => {
           desc: body.desc,
           data,
           accessors: [accessor._id],
+          askers: [],
         });
         newContainer
           .save()
@@ -177,14 +180,51 @@ router.post("/revoke", (req, res) => {
   });
 });
 
-router.post("/getApproval", (err, res) => {
-  let { credentialKey, containerKeys } = req.body;
-  if (err) {
-    res.status(500).send(err);
-  }
+router.post("/getApproval", async (req, res) => {
+  let { credentialKey, containerKeys, accessorID } = res.locals;
+
+  let { name, email } = req.body;
   Credential.findOne({ access_id: credentialKey }, (err, credential) => {
-    let { user_id } = credential.user_id;
-    // send notification to user
+    if (err) {
+      return res.status(500).send(err);
+    }
+    let { user_id } = credential;
+    User.findById(user_id, (err, user) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      Container.find(
+        {
+          access_id: {
+            $in: containerKeys,
+          },
+        },
+        async (err, containers) => {
+          if (err) {
+            return res.status(500).send(err);
+          }
+          if (!accessorID) {
+            if (!name || !email) {
+              return res
+                .status(500)
+                .send("must have name and email to request access");
+            }
+            let accessor = Accessor({ name, email });
+            accessorID = await accessor.save()._id;
+          }
+          for (let container of containers) {
+            container.update({ $push: { askers: container._id } });
+          }
+          sendNotif(
+            `${name} is requesting access to the following containers: \n ${containers
+              .map((v) => v._id)
+              .join("\n")}`,
+            user.email
+          ).then((data) => res.send("requested access"));
+        }
+      ).catch((e) => console.log(e));
+      // send notification to user
+    });
   });
 });
 
